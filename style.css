@@ -243,11 +243,14 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(23, 24, 28, 0.55);
-  display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   z-index: 50;
+  display: none;
+}
+.detail-overlay:not([hidden]) {
+  display: flex;
 }
 .detail-panel {
   background: var(--white);
