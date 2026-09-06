@@ -34,14 +34,14 @@ Papa.parse(MASTER_CSV_URL, {
       .map(normalizeRow);
 
     fuse = new Fuse(allProducts, {
-      keys: [
-        { name: "Product Name", weight: 0.5 },
-        { name: "Category", weight: 0.3 },
-        { name: "Vendor Name", weight: 0.2 },
-      ],
-      threshold: 0.35,
-      ignoreLocation: true,
-    });
+  keys: [
+    { name: "name", weight: 0.5 },
+    { name: "category", weight: 0.3 },
+    { name: "vendor", weight: 0.2 },
+  ],
+  threshold: 0.35,
+  ignoreLocation: true,
+});
 
     buildFilters();
     els.statLine.textContent = allProducts.length + " products across " + countVendors() + " vendors";
