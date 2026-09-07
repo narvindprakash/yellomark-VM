@@ -5,7 +5,7 @@ const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT6eArKL
 
 // The deployed Apps Script Web App URL for the Sunday Team vendor directory
 // backend (see Step 3 of the project setup). Paste it here after deploying.
-const SUNDAY_TEAM_SCRIPT_URL = "PASTE_YOUR_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE";
+const SUNDAY_TEAM_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiN7QE01-0uF7mONDQ3p7RegRrqrm-IQ35mHHSNN9fvX_2RO9lGKn69Vbehf9Ycqourw/exec";
 
 // ============================================================
 // ACCESS CONTROL — this is a UI-level convenience gate, not a hard
