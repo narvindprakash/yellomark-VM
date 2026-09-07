@@ -1,65 +1,51 @@
-# YelloMark Vendor Catalog Search
+# YelloMark Portal — Merged (Product Search + Vendor Directory)
 
-A static site that searches across all vendor products (M&S, Offikraft, Loyka, and
-any future vendor) in one place, reading live data from the published Google Sheets
-"Master" tab.
+Two sections behind a single Google Sign-In gate:
 
-## How it works
+- **Product Search** — the M&S/Offikraft/Loyka catalog search (unchanged functionality)
+- **Vendor Directory** — the Sunday Team vendor contact/onboarding tool, adapted to live in the same site and write to the same spreadsheet (new "Sunday Team" tab) and the same Drive folder (new "Sunday Team Documents" subfolder inside `yellomark_vendormanagement`)
 
-- `app.js` fetches the published Master tab CSV on page load (client-side, no backend).
-- [PapaParse](https://www.papaparse.com/) parses the CSV.
-- [Fuse.js](https://www.fusejs.io/) powers fuzzy search across product name, category, and vendor.
-- Vendor and category filter chips are generated automatically from whatever data is in the sheet — add a new vendor or category and it appears with no code changes.
-- Clicking a card opens a detail panel with what's in the Master tab (full vendor-specific detail like Fabric/Contents can be wired in later — see "Next steps" below).
+## Before this will work, you must:
 
-## Files
-
-```
-index.html    Page structure
-style.css     Visual design
-app.js        Data fetching, search, filtering, rendering
-```
-
-## Deploy to GitHub Pages
-
-1. Create a new repository on GitHub (e.g. `yellomark-portal`). Keep it **public**
-   (GitHub Pages on a free plan requires a public repo, or GitHub Pro for private).
-
-2. From this folder, run:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial YelloMark portal"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/yellomark-portal.git
-   git push -u origin main
+1. Create the **"Sunday Team"** tab in your Google Sheet (see the prompt provided in chat).
+2. Replace your Apps Script project's code with the merged version (see `apps-script-merged.gs` provided in chat) and **deploy it as a Web App** (Deploy → New deployment → Web app). Copy the resulting URL.
+3. Paste that URL into `app.js`, replacing:
+   ```js
+   const SUNDAY_TEAM_SCRIPT_URL = "PASTE_YOUR_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE";
    ```
+4. Set up a Google Cloud OAuth Client ID (see chat steps) and paste it into `index.html`, replacing:
+   ```html
+   data-client_id="PASTE_YOUR_GOOGLE_CLIENT_ID_HERE"
+   ```
+5. Add Charan's and Ravi's Gmail addresses as **Test users** on the OAuth consent screen (Google Cloud Console) — required for either of them to be able to sign in at all.
+6. `ADMIN_EMAILS` is already set to:
+   ```js
+   const ADMIN_EMAILS = [
+     "narvindprakash@gmail.com",
+     "charan.sunny@gmail.com",
+   ];
+   ```
+   Anyone not listed here defaults to Vendor Directory access only — including any future employee (like Ravi) you haven't added yet.
 
-3. On GitHub: go to the repo → **Settings → Pages** → under "Build and deployment",
-   set **Source** to "Deploy from a branch", branch `main`, folder `/ (root)` → **Save**.
+7. **`SKIP_LOGIN_FOR_TESTING` is currently `true`** near the top of `app.js`. While it's true, the Google Sign-In screen is bypassed entirely and the site boots straight in with admin access (both sections visible) — useful for you and Charan to review progress without the OAuth Client ID being set up yet. **Set this to `false`** once real Google Sign-In should be enforced (required before Ravi starts using it, since he should NOT get admin access).
 
-4. GitHub will give you a live URL, typically:
-   `https://YOUR_USERNAME.github.io/yellomark-portal/`
-   It can take a minute or two to go live after the first push.
+## How access control works (and its limits)
 
-## Updating data
+This is a **UI-level gate**, not a hardened security boundary — agreed as the right trade-off for two trusted teammates. Concretely:
+- The email check happens in the browser (`app.js`), not on a server.
+- The product CSV is still a publicly published Google Sheets link; anyone with that exact URL could read it directly regardless of login.
+- The Apps Script Web App is deployed with "Anyone" access (required for the site to reach it at all).
 
-You don't need to touch this repo to update products — the site always reads the
-live published CSV. Just edit the Google Sheet; auto-republish is already enabled,
-so changes appear on the site within a minute (browser cache aside).
+The one *real* enforcement layer is at the Google Sign-In step itself: because the OAuth consent screen isn't verified/published, **only emails added as "Test users" in Google Cloud Console can complete sign-in at all** — everyone else is blocked by Google before ever reaching the site.
 
-If you ever change the sheet's published URL, update the `MASTER_CSV_URL` constant
-at the top of `app.js`.
+## File overview
 
-## Known limitations (v1)
+```
+index.html    Login screen + app shell (nav, both sections)
+style.css     Visual design for everything, one consistent theme
+app.js        Sign-in handling, role gating, product search, vendor directory
+```
 
-- **Detail panel is Master-tab-only.** Vendor-specific fields (Fabric, Color,
-  Specifications, Contents) live in the vendor tabs, not the Master tab, so they
-  don't show in the detail popup yet. Next step: publish each vendor tab as its
-  own CSV and fetch the matching row on click, using the `Vendor Sheet Reference`
-  column to know which sheet/row to pull.
-- **Images depend on the Apps Script step** having been run (see project chat)
-  to convert Drive folder paths into real hotlink URLs. Until then, thumbnails
-  will show "No image".
-- **No pagination** — fine at ~150 products, worth adding if the catalog grows
-  into the thousands.
+## Deploying updates
+
+Same as before — edit files, `git add .`, `git commit -m "..."`, `git push`. GitHub Pages redeploys automatically within a minute or two.
