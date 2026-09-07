@@ -336,10 +336,13 @@ html, body {
 /* ---------- Login screen ---------- */
 .login-screen {
   min-height: 100vh;
-  display: flex;
   align-items: center;
   justify-content: center;
   background: var(--panel);
+  display: none;
+}
+.login-screen:not([hidden]) {
+  display: flex;
 }
 .login-card {
   background: var(--white);
