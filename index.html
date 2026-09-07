@@ -3,64 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YelloMark — Vendor Catalog Search</title>
+<title>YelloMark Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-<header class="masthead">
-  <div class="masthead-inner">
-    <div class="wordmark">
-      <span class="wordmark-main">YelloMark</span>
-      <span class="wordmark-sub">Vendor Catalog</span>
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="wordmark-main login-wordmark">YelloMark</div>
+    <p class="login-sub">Sign in with your Google account to continue.</p>
+    <!--
+      GOOGLE_CLIENT_ID: paste the OAuth Client ID from Google Cloud Console
+      here (see project setup steps). Looks like:
+      123456789-abc123xyz.apps.googleusercontent.com
+    -->
+    <div id="g_id_onload"
+         data-client_id="PASTE_YOUR_GOOGLE_CLIENT_ID_HERE"
+         data-callback="handleGoogleSignIn"
+         data-auto_prompt="false">
     </div>
-    <div class="stat-line" id="statLine">Loading catalog…</div>
+    <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large"></div>
+    <p class="login-note">Only approved team emails can sign in.</p>
   </div>
-</header>
+</div>
 
-<main>
-  <section class="search-zone">
-    <div class="search-zone-inner">
-      <label class="search-label" for="searchInput">Find a product across every vendor</label>
-      <div class="search-row">
-        <input type="text" id="searchInput" placeholder="Try “cap”, “notebook”, “gift box”, “bottle”…" autocomplete="off">
-        <button id="clearBtn" class="clear-btn" aria-label="Clear search">Clear</button>
+<!-- ============ MAIN APP SHELL (hidden until signed in) ============ -->
+<div id="appShell" hidden>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="wordmark">
+        <span class="wordmark-main">YelloMark</span>
+        <span class="wordmark-sub">Vendor Catalog</span>
       </div>
-
-      <div class="filters">
-        <div class="filter-group" id="vendorFilters">
-          <span class="filter-label">Vendor</span>
-        </div>
-        <div class="filter-group" id="categoryFilters">
-          <span class="filter-label">Category</span>
-        </div>
-        <div class="filter-group sort-group">
-          <span class="filter-label">Sort</span>
-          <select id="sortSelect">
-            <option value="relevance">Relevance</option>
-            <option value="price-asc">Price: low to high</option>
-            <option value="price-desc">Price: high to low</option>
-            <option value="name-asc">Name: A–Z</option>
-          </select>
-        </div>
+      <nav class="top-nav" id="topNav">
+        <button class="nav-tab active" data-section="product" id="navProduct">Product Search</button>
+        <button class="nav-tab" data-section="vendor" id="navVendor">Vendor Directory</button>
+      </nav>
+      <div class="user-line">
+        <span id="userEmailLabel"></span>
+        <button class="signout-btn" id="signOutBtn">Sign out</button>
       </div>
     </div>
-  </section>
+  </header>
 
-  <section class="results-zone">
-    <div class="results-inner">
-      <div class="results-meta" id="resultsMeta"></div>
-      <div class="results-grid" id="resultsGrid"></div>
-      <div class="empty-state" id="emptyState" hidden>
-        <p class="empty-title">No matches.</p>
-        <p class="empty-sub">Try a broader term, or clear a filter above.</p>
+  <!-- ============ PRODUCT SEARCH SECTION ============ -->
+  <div class="app-section" id="section-product">
+    <main>
+      <section class="search-zone">
+        <div class="search-zone-inner">
+          <label class="search-label" for="searchInput">Find a product across every vendor</label>
+          <div class="search-row">
+            <input type="text" id="searchInput" placeholder="Try “cap”, “notebook”, “gift box”, “bottle”…" autocomplete="off">
+            <button id="clearBtn" class="clear-btn" aria-label="Clear search">Clear</button>
+          </div>
+
+          <div class="filters">
+            <div class="filter-group" id="vendorFilters">
+              <span class="filter-label">Vendor</span>
+            </div>
+            <div class="filter-group" id="categoryFilters">
+              <span class="filter-label">Category</span>
+            </div>
+            <div class="filter-group sort-group">
+              <span class="filter-label">Sort</span>
+              <select id="sortSelect">
+                <option value="relevance">Relevance</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="name-asc">Name: A–Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="results-zone">
+        <div class="results-inner">
+          <div class="results-meta" id="resultsMeta"></div>
+          <div class="results-grid" id="resultsGrid"></div>
+          <div class="empty-state" id="emptyState" hidden>
+            <p class="empty-title">No matches.</p>
+            <p class="empty-sub">Try a broader term, or clear a filter above.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ VENDOR DIRECTORY SECTION ============ -->
+  <div class="app-section" id="section-vendor" hidden>
+    <main class="vendor-main">
+      <div class="vendor-tabs">
+        <div class="vendor-tab active" data-view="add">Add vendor</div>
+        <div class="vendor-tab" data-view="directory">Directory</div>
       </div>
-    </div>
-  </section>
-</main>
+
+      <div class="vendor-view active" id="view-add">
+        <div class="v-card">
+          <form id="vendorForm">
+            <div class="v-field">
+              <label>Company <span class="req">*</span></label>
+              <input type="text" id="v-company" placeholder="Registered company name" required>
+            </div>
+            <div class="v-field">
+              <label>Contact person</label>
+              <input type="text" id="v-contactPerson" placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="v-field">
+              <label>Category</label>
+              <div class="toggle-group" id="categoryToggle">
+                <div class="toggle-option" data-value="Service">Service</div>
+                <div class="toggle-option" data-value="Product">Product</div>
+              </div>
+            </div>
+            <div class="v-field">
+              <label>Core</label>
+              <input type="text" id="v-core" placeholder="What they specialize in">
+            </div>
+            <div class="v-row">
+              <div class="v-field">
+                <label>Location</label>
+                <input type="text" id="v-location" placeholder="City / area">
+              </div>
+              <div class="v-field">
+                <label>Phone number</label>
+                <input type="tel" id="v-phone" placeholder="10-digit number">
+              </div>
+            </div>
+            <div class="v-field">
+              <label>Attach docs</label>
+              <div class="upload-zone" id="uploadZone">
+                <p>Click to upload, or drag files here</p>
+                <span>Images or PDFs — rate cards, catalogs, samples</span>
+              </div>
+              <input type="file" id="fileInput" multiple accept="image/*,.pdf">
+              <div class="file-list" id="fileList"></div>
+            </div>
+            <div class="v-field">
+              <label>Notes</label>
+              <textarea id="v-notes" placeholder="Anything worth remembering about this vendor"></textarea>
+            </div>
+            <button type="submit" id="submitBtn">Submit vendor</button>
+            <div id="cancelEditRow" style="display:none; text-align:center; margin-top:12px;">
+              <a href="#" id="cancelEditLink">Cancel edit</a>
+            </div>
+            <div class="v-status" id="v-status"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="vendor-view" id="view-directory">
+        <input type="text" id="vendorSearchInput" placeholder="Search name, company, location, core, notes">
+        <div id="vendorList"></div>
+      </div>
+    </main>
+  </div>
+
+</div>
 
 <div class="detail-overlay" id="detailOverlay" hidden>
   <div class="detail-panel" id="detailPanel"></div>
